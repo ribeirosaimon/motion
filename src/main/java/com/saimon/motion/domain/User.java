@@ -7,11 +7,14 @@ import jakarta.persistence.Id;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.ArrayList;
+import java.util.List;
+
 
 @Entity
 @Getter
 @Setter
-public class Client {
+public class User {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
@@ -26,5 +29,11 @@ public class Client {
     private String cpf;
 
     private String phone;
+
+    private List<Roles> roles = new ArrayList<>();
+
+    public enum Roles {
+        USER, ADMIN
+    }
 
 }
