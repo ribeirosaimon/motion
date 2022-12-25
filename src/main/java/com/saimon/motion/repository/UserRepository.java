@@ -1,9 +1,12 @@
 package com.saimon.motion.repository;
 
-import com.saimon.motion.domain.User;
+import com.saimon.motion.domain.MotionUser;
 import org.springframework.data.repository.CrudRepository;
 
-public interface UserRepository extends CrudRepository<User, Long> {
+import java.util.Optional;
 
-    User findByUsername(String username);
+public interface UserRepository extends CrudRepository<MotionUser, Long> {
+    Optional<MotionUser> findByUsername(String username);
+
+    Boolean existsByUsername(String username);
 }
