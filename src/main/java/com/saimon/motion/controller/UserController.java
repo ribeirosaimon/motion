@@ -1,6 +1,6 @@
 package com.saimon.motion.controller;
 
-import com.saimon.motion.security.MotionUser;
+import com.saimon.motion.security.MotionLoggedUser;
 import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class UserController {
 
     @GetMapping("/teste")
-    public ResponseEntity teste(MotionUser principal) {
+    public ResponseEntity teste(MotionLoggedUser principal) {
         System.out.println(principal);
         return ResponseEntity.ok("DEU");
     }
