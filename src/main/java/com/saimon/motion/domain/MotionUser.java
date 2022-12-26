@@ -1,6 +1,8 @@
 package com.saimon.motion.domain;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -30,4 +32,24 @@ public class MotionUser {
     @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     private List<Role> roles = new ArrayList<>();
 
+    public MotionUserRef getUserRef(){
+        return new MotionUserRef(
+                this.name,
+                this.username,
+                this.cpf,
+                this.phone,
+                this.roles
+        );
+    }
+
+    @Data
+    @AllArgsConstructor
+    public static class MotionUserRef {
+        private String name;
+        private String username;
+        private String cpf;
+        private String phone;
+
+        private List<Role> roles;
+    }
 }

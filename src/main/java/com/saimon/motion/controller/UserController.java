@@ -12,7 +12,7 @@ public class UserController {
 
     @GetMapping("/teste")
     public ResponseEntity teste(MotionLoggedUser principal) {
-        System.out.println(principal);
+        System.out.println(principal.getMotionUser());
         return ResponseEntity.ok("DEU");
     }
 

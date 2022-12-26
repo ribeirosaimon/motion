@@ -1,5 +1,7 @@
 package com.saimon.motion.security;
 
+import com.saimon.motion.domain.MotionUser;
+import lombok.Getter;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.util.Assert;
@@ -7,10 +9,12 @@ import org.springframework.util.Assert;
 import java.util.Collection;
 
 
+@Getter
 public class MotionLoggedUser extends AbstractAuthenticationToken {
     private static final long serialVersionUID = 600L;
     private final Object principal;
     private Object credentials;
+    private MotionUser.MotionUserRef motionUser;
 
     public MotionLoggedUser(Object principal, Object credentials) {
         super((Collection) null);
@@ -50,5 +54,9 @@ public class MotionLoggedUser extends AbstractAuthenticationToken {
     public void eraseCredentials() {
         super.eraseCredentials();
         this.credentials = null;
+    }
+
+    public void setMotionUser(MotionUser motionUser) {
+        this.motionUser = motionUser.getUserRef();
     }
 }
