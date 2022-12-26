@@ -17,7 +17,7 @@ import java.util.Collections;
 public class JWTAuthenticationFilter extends UsernamePasswordAuthenticationFilter {
     @Override
     public Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response) throws AuthenticationException {
-        LoginDTO loginDTO = new LoginDTO();
+        LoginDTO loginDTO;
         try {
             loginDTO = new ObjectMapper().readValue(request.getReader(), LoginDTO.class);
         } catch (IOException e) {
@@ -37,12 +37,19 @@ public class JWTAuthenticationFilter extends UsernamePasswordAuthenticationFilte
                                             FilterChain chain,
                                             Authentication authResult) throws IOException, ServletException {
 
-        UserDetailsImpl userDetails = (UserDetailsImpl) authResult.getPrincipal();
+        MotionPrincipal userDetails = (MotionPrincipal) authResult.getPrincipal();
         String token = JwtUtils.createToken(userDetails);
 
         response.addHeader("Authorization", "Bearer " + token);
         response.getWriter().flush();
 
         super.successfulAuthentication(request, response, chain, authResult);
+    }
+
+    @Override
+    protected void unsuccessfulAuthentication(HttpServletRequest request, HttpServletResponse response,
+                                              AuthenticationException failed) throws IOException, ServletException {
+        logger.debug("failed authentication while attempting to access");
+        response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Authentication Failed");
     }
 }

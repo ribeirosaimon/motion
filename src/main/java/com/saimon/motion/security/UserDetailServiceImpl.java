@@ -17,6 +17,6 @@ public class UserDetailServiceImpl implements UserDetailsService {
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         MotionUser motionUser = userRepository.findByUsername(username).orElseThrow(() -> new UsernameNotFoundException("User not found"));
 
-        return new UserDetailsImpl(motionUser);
+        return new MotionPrincipal(motionUser);
     }
 }

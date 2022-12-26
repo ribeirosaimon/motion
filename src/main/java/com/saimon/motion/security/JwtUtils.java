@@ -35,7 +35,7 @@ public class JwtUtils {
     public static UsernamePasswordAuthenticationToken getAuthentication(String token) {
         try {
             Claims claims = Jwts.parser()
-                    .setSigningKey(ACCESS_TOKEN)
+                    .setSigningKey(ACCESS_TOKEN.getBytes())
                     .parseClaimsJws(token)
                     .getBody();
 

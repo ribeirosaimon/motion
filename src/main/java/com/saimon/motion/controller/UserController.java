@@ -8,12 +8,15 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.security.Principal;
+
 @RestController
 @AllArgsConstructor
 public class UserController {
 
     @GetMapping("/teste")
-    public ResponseEntity teste() {
+    public ResponseEntity teste(Principal principal) {
+        System.out.println(principal);
         return ResponseEntity.ok("DEU");
     }
 
