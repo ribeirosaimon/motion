@@ -7,31 +7,31 @@ import org.springframework.util.Assert;
 import java.util.Collection;
 
 
-public class TestePrincipal extends AbstractAuthenticationToken {
+public class MotionUser extends AbstractAuthenticationToken {
     private static final long serialVersionUID = 600L;
     private final Object principal;
     private Object credentials;
 
-    public TestePrincipal(Object principal, Object credentials) {
+    public MotionUser(Object principal, Object credentials) {
         super((Collection)null);
         this.principal = principal;
         this.credentials = credentials;
         this.setAuthenticated(false);
     }
 
-    public TestePrincipal(Object principal, Object credentials, Collection<? extends GrantedAuthority> authorities) {
+    public MotionUser(Object principal, Object credentials, Collection<? extends GrantedAuthority> authorities) {
         super(authorities);
         this.principal = principal;
         this.credentials = credentials;
         super.setAuthenticated(true);
     }
 
-    public static TestePrincipal unauthenticated(Object principal, Object credentials) {
-        return new TestePrincipal(principal, credentials);
+    public static MotionUser unauthenticated(Object principal, Object credentials) {
+        return new MotionUser(principal, credentials);
     }
 
-    public static TestePrincipal authenticated(Object principal, Object credentials, Collection<? extends GrantedAuthority> authorities) {
-        return new TestePrincipal(principal, credentials, authorities);
+    public static MotionUser authenticated(Object principal, Object credentials, Collection<? extends GrantedAuthority> authorities) {
+        return new MotionUser(principal, credentials, authorities);
     }
 
     public Object getCredentials() {

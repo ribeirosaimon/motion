@@ -4,8 +4,6 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
-import io.jsonwebtoken.security.Keys;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.Collections;
@@ -32,7 +30,7 @@ public class JwtUtils {
 
     }
 
-    public static UsernamePasswordAuthenticationToken getAuthentication(String token) {
+    public static MotionUser getAuthentication(String token) {
         try {
             Claims claims = Jwts.parser()
                     .setSigningKey(ACCESS_TOKEN.getBytes())
@@ -41,7 +39,7 @@ public class JwtUtils {
 
             String username = claims.getSubject();
 
-            return new UsernamePasswordAuthenticationToken(username, null, Collections.emptyList());
+            return new MotionUser(username, null, Collections.emptyList());
         } catch (JwtException e) {
             return null;
         }
