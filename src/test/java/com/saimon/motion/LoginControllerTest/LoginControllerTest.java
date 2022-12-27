@@ -48,7 +48,7 @@ public class LoginControllerTest {
 
         String token = result.getResponse().getHeader("Authorization");
 
-        mvc.perform(MockMvcRequestBuilders.get("/teste")
+        mvc.perform(MockMvcRequestBuilders.get("/ready")
                         .header("Authorization", "Bearer " + token))
                 .andExpect(MockMvcResultMatchers.status().isOk());
     }
@@ -61,7 +61,7 @@ public class LoginControllerTest {
 
         String body = "{\"username\":\"" + username + "\", \"password\":\"" + password + "\"}";
 
-        mvc.perform(MockMvcRequestBuilders.post("/login")
+        mvc.perform(MockMvcRequestBuilders.post("/ready")
                         .content(body))
                 .andExpect(MockMvcResultMatchers.status().isUnauthorized()).andReturn();
     }
