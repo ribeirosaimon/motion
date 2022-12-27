@@ -19,8 +19,7 @@ public class ApiReadyController {
     @GetMapping("/ready")
     public ReadyDTO readyApiController(HttpServletRequest request){
         String ipAddress = request.getHeader("X-Forwarded-For") != null ? request.getHeader("X-Forwarded-For") : request.getRemoteAddr();
-//        return new ReadyDTO(ipAddress, new Date());
-        throw new FileNotFound();
+        return new ReadyDTO(ipAddress, new Date());
     }
 
 
