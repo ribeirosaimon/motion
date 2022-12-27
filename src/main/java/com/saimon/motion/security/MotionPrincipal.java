@@ -3,20 +3,23 @@ package com.saimon.motion.security;
 import com.saimon.motion.domain.MotionUser;
 import lombok.AllArgsConstructor;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
+import java.util.List;
 
 @AllArgsConstructor
 public class MotionPrincipal implements UserDetails {
 
     private final MotionUser motionUser;
 
-
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return Collections.emptyList();
+        List<GrantedAuthority> authorities = new ArrayList<>();
+        motionUser.getRoles().forEach(s -> authorities.add(new SimpleGrantedAuthority(s.getName())));
+        return authorities;
     }
 
     @Override

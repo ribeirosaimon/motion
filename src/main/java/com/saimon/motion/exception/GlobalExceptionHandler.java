@@ -12,7 +12,7 @@ import java.util.Date;
 public class GlobalExceptionHandler {
 
     @ExceptionHandler(MotionException.class)
-    @ResponseStatus(HttpStatus.NOT_FOUND)
+    @ResponseStatus(HttpStatus.CONFLICT)
     @ResponseBody
     public ErrorResponse handleMotionException(MotionException ex) {
 
@@ -24,8 +24,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(FileNotFound.class)
     @ResponseStatus(HttpStatus.CONFLICT)
     @ResponseBody
-    public ErrorResponse handleFileNotFound(FileNotFound ex) {
-
+    public ErrorResponse handleFileNotFound() {
         ErrorResponse errorResponse = new ErrorResponse("File not found");
         errorResponse.setDate(new Date());
         return errorResponse;

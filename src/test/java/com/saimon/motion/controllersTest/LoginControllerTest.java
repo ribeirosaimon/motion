@@ -1,7 +1,7 @@
-package com.saimon.motion.LoginControllerTest;
+package com.saimon.motion.controllersTest;
 
-import com.saimon.motion.domain.MotionUser;
 import com.saimon.motion.repository.UserRepository;
+import com.saimon.motion.util.UtilTest;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -28,19 +28,13 @@ public class LoginControllerTest {
 
     @BeforeAll
     public void setUp() {
-        MotionUser motionUser = new MotionUser();
-        motionUser.setUsername("meuTeste");
-        motionUser.setPassword("$2a$10$y7BaCXMYDE6xkJl76bKedewKKlz2vd80dPQM9AFxS6OaBaqu2PK6S");
-        userRepository.save(motionUser);
+        UtilTest.saveMotionUser(userRepository);
     }
 
     @Test
     @DisplayName("Login with Jwt is ok")
     public void existentUserCanGetTokenAndAuthentication() throws Exception {
-        String username = "meuTeste";
-        String password = "teste";
-
-        String body = "{\"username\":\"" + username + "\", \"password\":\"" + password + "\"}";
+        String body = UtilTest.loginBody();
 
         MvcResult result = mvc.perform(MockMvcRequestBuilders.post("/login")
                         .content(body))

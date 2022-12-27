@@ -4,13 +4,11 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 public class JwtUtils {
@@ -18,14 +16,17 @@ public class JwtUtils {
     private static final String ACCESS_TOKEN = "Q4NSl604sgyHJj1qwEkR3ycUeR4uUAt7WJraD7EN3O9DVM4yyYuHxMEbSF4XXyYJkal13eqgB0F7Bq4H";
     private static final Long EXPIRATION_TIME = TimeUnit.HOURS.toMillis(24);
 
-    public static String createToken(UserDetails username) {
+    public static String createToken(UserDetails motionUser) {
         Date expirationTime = new Date(System.currentTimeMillis() + EXPIRATION_TIME);
         Map<String, Object> extraInfo = new HashMap<>();
-        extraInfo.put("username", username);
+        List<String> listString = new ArrayList<>();
+
+        motionUser.getAuthorities().forEach(s -> listString.add(s.getAuthority()));
+        extraInfo.put("roles", listString);
 
         return Jwts.builder()
                 .signWith(SignatureAlgorithm.HS512, ACCESS_TOKEN.getBytes())
-                .setSubject(username.getUsername())
+                .setSubject(motionUser.getUsername())
                 .setExpiration(expirationTime)
                 .addClaims(extraInfo).compact();
 
@@ -40,7 +41,11 @@ public class JwtUtils {
 
             String username = claims.getSubject();
 
-            return new MotionLoggedUser(username, null, Collections.emptyList());
+            ArrayList<String> roles = (ArrayList<String>) claims.get("roles");
+            List<GrantedAuthority> rolesAuthority = new ArrayList<>();
+            roles.forEach(s -> rolesAuthority.add(new SimpleGrantedAuthority("ROLE_" + s)));
+
+            return new MotionLoggedUser(username, null, rolesAuthority);
         } catch (JwtException e) {
             return null;
         }
