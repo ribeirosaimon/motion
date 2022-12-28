@@ -7,6 +7,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 
@@ -24,15 +25,25 @@ public class MotionUser {
     private String username;
     @Column(nullable = false)
     private String password;
-
     private String cpf;
-
     private String phone;
+    private Long loginCount;
+    private Integer loginAttemp;
+    private Date lastLoginAttemp;
+    @Enumerated(EnumType.STRING)
+    private Status status;
+
 
     @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     private List<Role> roles = new ArrayList<>();
 
-    public MotionUserRef getUserRef(){
+    public enum Status {
+        ACTIVE,
+        INACTIVE,
+        SUSPENDED
+    }
+
+    public MotionUserRef getUserRef() {
         return new MotionUserRef(
                 this.name,
                 this.username,
@@ -49,7 +60,6 @@ public class MotionUser {
         private String username;
         private String cpf;
         private String phone;
-
         private List<Role> roles;
     }
 }

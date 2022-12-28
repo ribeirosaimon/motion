@@ -32,6 +32,9 @@ public class MotionUserService {
         motionUser.setPassword(passwordEncoder.encode(newUserDTO.getPassword()));
         motionUser.setPhone(newUserDTO.getPhone());
         motionUser.setCpf(newUserDTO.getCpf());
+        motionUser.setLoginAttemp(0);
+        motionUser.setLoginCount(0L);
+        motionUser.setStatus(MotionUser.Status.ACTIVE);
         Role role = roleRepository.findByName("USER").orElseThrow(Exception::new);
         motionUser.setRoles(Collections.singletonList(role));
 

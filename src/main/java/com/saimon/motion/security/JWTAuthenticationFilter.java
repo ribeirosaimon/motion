@@ -2,6 +2,9 @@ package com.saimon.motion.security;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.saimon.motion.DTOs.LoginDTO;
+import com.saimon.motion.domain.MotionUser;
+import com.saimon.motion.exception.ErrorResponse;
+import com.saimon.motion.repository.UserRepository;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -13,13 +16,27 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 
 import java.io.IOException;
 import java.util.Collections;
+import java.util.Date;
+import java.util.Optional;
+import java.util.concurrent.TimeUnit;
+
 
 public class JWTAuthenticationFilter extends UsernamePasswordAuthenticationFilter {
+
+    private final UserRepository userRepository;
+
+    private String username;
+
+    public JWTAuthenticationFilter(UserRepository userRepository) {
+        this.userRepository = userRepository;
+    }
+
     @Override
     public Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response) throws AuthenticationException {
         LoginDTO loginDTO;
         try {
             loginDTO = new ObjectMapper().readValue(request.getReader(), LoginDTO.class);
+            username = loginDTO.getUsername();
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -41,9 +58,51 @@ public class JWTAuthenticationFilter extends UsernamePasswordAuthenticationFilte
         MotionPrincipal userDetails = (MotionPrincipal) authResult.getPrincipal();
         String token = JwtUtils.createToken(userDetails);
 
-        response.addHeader("Authorization", "Bearer " + token);
-        response.getWriter().flush();
+        MotionUser motionUser = userRepository.findByUsername(username).get();
+        if (!motionUser.getStatus().equals(MotionUser.Status.SUSPENDED) || motionUser.getLastLoginAttemp()
+                .after(new Date(System.currentTimeMillis() + TimeUnit.HOURS.toMillis(1)))) {
+            motionUser.setLoginCount(motionUser.getLoginCount() + 1);
+            motionUser.setLoginAttemp(0);
+            userRepository.save(motionUser);
 
-        super.successfulAuthentication(request, response, chain, authResult);
+            response.addHeader("Authorization", "Bearer " + token);
+            response.getWriter().flush();
+
+            super.successfulAuthentication(request, response, chain, authResult);
+        } else {
+            motionUser.setLastLoginAttemp(new Date());
+            userRepository.save(motionUser);
+            this.setResponseError(response, "Your account was suspended");
+        }
+    }
+
+    @Override
+    protected void unsuccessfulAuthentication(HttpServletRequest request,
+                                              HttpServletResponse response, AuthenticationException failed) throws IOException, ServletException {
+
+        Optional<MotionUser> motionUser = userRepository.findByUsername(username);
+
+        if (motionUser.isPresent()) {
+            motionUser.get().setLastLoginAttemp(new Date());
+            if (motionUser.get().getLoginAttemp() >= 10) {
+                motionUser.get().setStatus(MotionUser.Status.SUSPENDED);
+            } else {
+                Integer loginAttemp = motionUser.get().getLoginAttemp();
+                motionUser.get().setLoginAttemp(loginAttemp + 1);
+            }
+            userRepository.save(motionUser.get());
+        }
+
+        if (motionUser.get().getStatus().equals(MotionUser.Status.SUSPENDED)) {
+            this.setResponseError(response, "Your account was suspended");
+            return;
+        }
+        this.setResponseError(response, "Password incorrect");
+    }
+
+    private void setResponseError(HttpServletResponse response, String message) throws IOException {
+        response.setStatus(401);
+        response.setContentType("application/json");
+        response.getWriter().write(new ObjectMapper().writeValueAsString(new ErrorResponse(message)));
     }
 }
