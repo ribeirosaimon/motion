@@ -6,9 +6,7 @@ import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.util.ArrayList;
 import java.util.Date;
-import java.util.List;
 
 
 @Getter
@@ -30,8 +28,18 @@ public class MotionUser {
     private Date lastLoginAttemp;
     @Enumerated(EnumType.STRING)
     private Status status;
-    @ManyToMany(fetch = FetchType.EAGER)
-    private List<Role> roles = new ArrayList<>();
+    @Enumerated(EnumType.STRING)
+    private Role role;
+    private Date createdAt;
+    private Date updatedAt;
+    @OneToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name = "adminPromotionId", referencedColumnName = "id")
+    private AdminPromotion promotedAt;
+
+    public enum Role {
+        ADMIN,
+        USER
+    }
 
     public enum Status {
         ACTIVE,
@@ -46,7 +54,7 @@ public class MotionUser {
                 this.username,
                 this.cpf,
                 this.phone,
-                this.roles
+                this.role
         );
     }
 
@@ -58,6 +66,6 @@ public class MotionUser {
         private String username;
         private String cpf;
         private String phone;
-        private List<Role> roles;
+        private Role role;
     }
 }

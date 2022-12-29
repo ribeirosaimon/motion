@@ -7,6 +7,7 @@ import com.saimon.motion.security.MotionLoggedUser;
 import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
@@ -22,10 +23,17 @@ public class MotionUserController {
         return motionUserService.signUpUser(newUserDTO);
     }
 
-    @PostMapping("/inactive")
+    @PostMapping({"/inactive/{id}", "/inactive"})
     @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_USER')")
-    public ResponseEntity inactiveMotionUser(MotionLoggedUser motionLoggedUser) throws Exception {
-        motionUserService.inactiveUser(motionLoggedUser.getMotionUser().getId());
+    public ResponseEntity inactiveMotionUser(MotionLoggedUser motionLoggedUser,
+                                             @PathVariable(value = "id", required = false) Long id) {
+        motionUserService.inactiveUser(motionLoggedUser.getMotionUser().getId(), id);
         return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/promotion/{id}")
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN')")
+    public MotionUser.MotionUserRef promotionToAdmin(@PathVariable Long id){
+        return motionUserService.promoteToAdmin(id);
     }
 }

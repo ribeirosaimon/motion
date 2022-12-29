@@ -2,36 +2,35 @@ package com.saimon.motion.util;
 
 import com.saimon.motion.DTOs.SignInDTO;
 import com.saimon.motion.domain.MotionUser;
-import com.saimon.motion.domain.Role;
-import com.saimon.motion.repository.RoleRepository;
 import com.saimon.motion.repository.UserRepository;
+import com.saimon.motion.security.JwtUtils;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.util.Collections;
 import java.util.Date;
-import java.util.List;
 
 @Getter
 @Setter
 public class UtilTest {
 
     private static final String USERNAME = "testUsername";
+    private static final String ADMIN_USERNAME = "testAdminUsername";
     private static final String PASSWORD = "teste";
     private static final String CPF = "12345678901";
     private static final String PHONE = "11222223333";
     private static final String PASSWORD_ENCODED = "$2a$10$y7BaCXMYDE6xkJl76bKedewKKlz2vd80dPQM9AFxS6OaBaqu2PK6S";
     private final UserRepository userRepository;
-    private final RoleRepository roleRepository;
 
-    public UtilTest(UserRepository userRepository, RoleRepository roleRepository) throws Exception {
+    public UtilTest(UserRepository userRepository) throws Exception {
         this.userRepository = userRepository;
-        this.roleRepository = roleRepository;
-        this.saveMotionUser();
+        this.saveMotionUserAndAdmin();
     }
 
     public MotionUser getMotionUserInRepository() {
         return userRepository.findByUsername(USERNAME).get();
+    }
+    public MotionUser getMotionAdminInRepository() {
+        return userRepository.findByUsername(ADMIN_USERNAME).get();
     }
 
     public SignInDTO getSignInDTO() {
@@ -50,8 +49,6 @@ public class UtilTest {
     }
 
     public MotionUser createUser(String username) {
-        Role role = this.roleRepository.findByName("USER").get();
-
         MotionUser motionUser = new MotionUser();
         motionUser.setUsername(username);
         motionUser.setName(username);
@@ -62,35 +59,31 @@ public class UtilTest {
         motionUser.setLoginCount(0L);
         motionUser.setLoginAttemp(0);
         motionUser.setLastLoginAttemp(new Date());
-        motionUser.setRoles(List.of(role));
+        motionUser.setRole(MotionUser.Role.USER);
 
         return motionUser;
     }
 
-    public void saveMotionUser() throws Exception {
-        Role adminRole = new Role();
-        adminRole.setName("ADMIN");
+    public MotionUser createAdmin() {
+        MotionUser admin = this.createUser(ADMIN_USERNAME);
+        admin.setRole(MotionUser.Role.ADMIN);
+        return admin;
+    }
 
-        Role userRole = new Role();
-        userRole.setName("USER");
+    public String getBearerToken(MotionUser motionUserInRepository) {
+        String token = JwtUtils.createToken(motionUserInRepository.getUsername(), motionUserInRepository.getRole());
+        return String.format("Bearer %s", token);
+    }
+
+    public void saveMotionUserAndAdmin() throws Exception {
         if (!this.userRepository.existsByUsername(USERNAME)) {
-            this.roleRepository.save(adminRole);
-            Role role = this.roleRepository.save(userRole);
-
-            MotionUser motionUser = new MotionUser();
-
-            motionUser.setUsername(USERNAME);
-            motionUser.setName(USERNAME);
-            motionUser.setPassword(PASSWORD_ENCODED);
-            motionUser.setCpf(CPF);
-            motionUser.setPhone(PHONE);
-            motionUser.setStatus(MotionUser.Status.ACTIVE);
-            motionUser.setLoginCount(0L);
-            motionUser.setLoginAttemp(0);
-            motionUser.setLastLoginAttemp(new Date());
-            motionUser = this.userRepository.save(motionUser);
-            motionUser.setRoles(Collections.singletonList(role));
+            MotionUser motionUser = this.createUser(USERNAME);
             this.userRepository.save(motionUser);
+        }
+        if (!this.userRepository.existsByUsername(ADMIN_USERNAME)) {
+            MotionUser motionAdmin = this.createUser(ADMIN_USERNAME);
+            motionAdmin.setRole(MotionUser.Role.ADMIN);
+            this.userRepository.save(motionAdmin);
         }
     }
 

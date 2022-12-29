@@ -57,7 +57,7 @@ public class JWTAuthenticationFilter extends UsernamePasswordAuthenticationFilte
                                             Authentication authResult) throws IOException, ServletException {
 
         MotionPrincipal userDetails = (MotionPrincipal) authResult.getPrincipal();
-        String token = JwtUtils.createToken(userDetails);
+        String token = JwtUtils.createToken(userDetails.getUsername(), userDetails.getRole());
 
         MotionUser motionUser = userRepository.findByUsername(username).get();
 

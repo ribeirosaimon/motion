@@ -1,24 +1,26 @@
 package com.saimon.motion.api.service;
 
 import com.saimon.motion.DTOs.SignInDTO;
+import com.saimon.motion.domain.AdminPromotion;
 import com.saimon.motion.domain.MotionUser;
-import com.saimon.motion.domain.Role;
 import com.saimon.motion.exception.MotionException;
-import com.saimon.motion.repository.RoleRepository;
+import com.saimon.motion.repository.AdminPromotionRepository;
 import com.saimon.motion.repository.UserRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Collections;
+import java.util.Date;
 
 @Service
 @AllArgsConstructor
 public class MotionUserService {
 
     private final UserRepository userRepository;
-    private final RoleRepository roleRepository;
+    private final AdminPromotionRepository adminPromotionRepository;
     private final PasswordEncoder passwordEncoder;
+
 
     public MotionUser.MotionUserRef signUpUser(SignInDTO newUserDTO) throws Exception {
 
@@ -35,14 +37,50 @@ public class MotionUserService {
         motionUser.setLoginAttemp(0);
         motionUser.setLoginCount(0L);
         motionUser.setStatus(MotionUser.Status.ACTIVE);
-        Role role = roleRepository.findByName("USER").orElseThrow(Exception::new);
-        motionUser.setRoles(Collections.singletonList(role));
+        motionUser.setRole(MotionUser.Role.USER);
+
+        motionUser.setCreatedAt(new Date());
+        motionUser.setUpdatedAt(new Date());
 
         return userRepository.save(motionUser).getUserRef();
     }
 
-    public void inactiveUser(Long userId) {
-        MotionUser motionUser = userRepository.findById(userId).orElseThrow(() -> new MotionException("User not found"));
+    public void inactiveUser(Long loggedUserId, Long bannedUserId) {
+        MotionUser motionUser = userRepository.findById(loggedUserId)
+                .orElseThrow(() -> new MotionException("User not found"));
+        //admin can ban USERS
+        if (motionUser.getRole().equals(MotionUser.Role.ADMIN)) {
+            if (bannedUserId != null) {
+                MotionUser bannedUser = userRepository.findById(bannedUserId)
+                        .orElseThrow(() -> new MotionException("User not found"));
+                bannedUser.setStatus(MotionUser.Status.INACTIVE);
+                userRepository.save(bannedUser);
+            } else {
+                motionUser.setStatus(MotionUser.Status.INACTIVE);
+            }
+        } else {
+            motionUser.setStatus(MotionUser.Status.INACTIVE);
+        }
+        userRepository.save(motionUser);
+    }
 
+    @Transactional
+    public MotionUser.MotionUserRef promoteToAdmin(Long promotedUserId) {
+        MotionUser motionUser = userRepository.findById(promotedUserId)
+                .orElseThrow(() -> new MotionException("User not found"));
+
+        if (motionUser.getRole().equals(MotionUser.Role.ADMIN)){
+            throw new MotionException("you already Admin");
+        }
+        AdminPromotion adminPromotion = new AdminPromotion();
+
+        adminPromotion.setPromotedAt(new Date());
+        adminPromotion.setMotionUser(motionUser);
+        adminPromotionRepository.save(adminPromotion);
+
+        motionUser.setPromotedAt(adminPromotion);
+        motionUser.setRole(MotionUser.Role.ADMIN);
+        userRepository.save(motionUser);
+        return null;
     }
 }

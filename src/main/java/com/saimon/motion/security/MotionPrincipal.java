@@ -18,10 +18,11 @@ public class MotionPrincipal implements UserDetails {
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         List<GrantedAuthority> authorities = new ArrayList<>();
-        motionUser.getRoles().forEach(s -> authorities.add(new SimpleGrantedAuthority(s.getName())));
+        authorities.add(new SimpleGrantedAuthority(motionUser.getRole().name()));
         return authorities;
     }
 
+    public MotionUser.Role getRole() {return motionUser.getRole();}
     @Override
     public String getPassword() {
         return motionUser.getPassword();

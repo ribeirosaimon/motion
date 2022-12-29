@@ -4,7 +4,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.saimon.motion.domain.MotionUser;
 import com.saimon.motion.exception.ErrorResponse;
 import com.saimon.motion.messagerResponse.ConstantMessager;
-import com.saimon.motion.repository.RoleRepository;
 import com.saimon.motion.repository.UserRepository;
 import com.saimon.motion.util.UtilTest;
 import org.junit.jupiter.api.*;
@@ -27,15 +26,13 @@ public class LoginControllerTest {
     @Autowired
     UserRepository userRepository;
     @Autowired
-    RoleRepository roleRepository;
-    @Autowired
     ObjectMapper objectMapper;
     UtilTest utilTest;
 
     @BeforeAll
     public void setUp() throws Exception {
-        utilTest = new UtilTest(userRepository, roleRepository);
-        utilTest.saveMotionUser();
+        utilTest = new UtilTest(userRepository);
+        utilTest.saveMotionUserAndAdmin();
     }
 
     private String makeLoginInApi() throws Exception {
