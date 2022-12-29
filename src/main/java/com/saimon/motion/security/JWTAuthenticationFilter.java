@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.saimon.motion.DTOs.LoginDTO;
 import com.saimon.motion.domain.MotionUser;
 import com.saimon.motion.exception.ErrorResponse;
+import com.saimon.motion.messagerResponse.ConstantMessager;
 import com.saimon.motion.repository.UserRepository;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -59,10 +60,16 @@ public class JWTAuthenticationFilter extends UsernamePasswordAuthenticationFilte
         String token = JwtUtils.createToken(userDetails);
 
         MotionUser motionUser = userRepository.findByUsername(username).get();
-        if (!motionUser.getStatus().equals(MotionUser.Status.SUSPENDED) || motionUser.getLastLoginAttemp()
-                .after(new Date(System.currentTimeMillis() + TimeUnit.HOURS.toMillis(1)))) {
+
+        if (!motionUser.getStatus().equals(MotionUser.Status.SUSPENDED) ||
+                (motionUser.getLastLoginAttemp()
+                        .after(new Date(System.currentTimeMillis() + TimeUnit.HOURS.toMillis(1))) || motionUser.getStatus().equals(MotionUser.Status.SUSPENDED))
+        ) {
             motionUser.setLoginCount(motionUser.getLoginCount() + 1);
             motionUser.setLoginAttemp(0);
+            if (motionUser.getStatus().equals(MotionUser.Status.SUSPENDED)) {
+                motionUser.setStatus(MotionUser.Status.ACTIVE);
+            }
             userRepository.save(motionUser);
 
             response.addHeader("Authorization", "Bearer " + token);
@@ -72,7 +79,7 @@ public class JWTAuthenticationFilter extends UsernamePasswordAuthenticationFilte
         } else {
             motionUser.setLastLoginAttemp(new Date());
             userRepository.save(motionUser);
-            this.setResponseError(response, "Your account was suspended");
+            this.setResponseError(response, ConstantMessager.ACCOUNT_SUSPENDED);
         }
     }
 
@@ -94,10 +101,10 @@ public class JWTAuthenticationFilter extends UsernamePasswordAuthenticationFilte
         }
 
         if (motionUser.get().getStatus().equals(MotionUser.Status.SUSPENDED)) {
-            this.setResponseError(response, "Your account was suspended");
+            this.setResponseError(response, ConstantMessager.ACCOUNT_SUSPENDED);
             return;
         }
-        this.setResponseError(response, "Password incorrect");
+        this.setResponseError(response, ConstantMessager.INCORRECT_PASSWORD);
     }
 
     private void setResponseError(HttpServletResponse response, String message) throws IOException {
