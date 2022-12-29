@@ -20,8 +20,8 @@ public class MotionUserService {
     private final RoleRepository roleRepository;
     private final PasswordEncoder passwordEncoder;
 
-
     public MotionUser.MotionUserRef signUpUser(SignInDTO newUserDTO) throws Exception {
+
         if (userRepository.existsByUsername(newUserDTO.getUsername())) {
             throw new MotionException("User already exists");
         }
@@ -39,5 +39,10 @@ public class MotionUserService {
         motionUser.setRoles(Collections.singletonList(role));
 
         return userRepository.save(motionUser).getUserRef();
+    }
+
+    public void inactiveUser(Long userId) {
+        MotionUser motionUser = userRepository.findById(userId).orElseThrow(() -> new MotionException("User not found"));
+
     }
 }

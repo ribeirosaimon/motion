@@ -15,11 +15,9 @@ import java.util.List;
 @Setter
 @Entity
 public class MotionUser {
-
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
-
     private String name;
     @Column(nullable = false)
     private String username;
@@ -32,8 +30,6 @@ public class MotionUser {
     private Date lastLoginAttemp;
     @Enumerated(EnumType.STRING)
     private Status status;
-
-
     @ManyToMany(fetch = FetchType.EAGER)
     private List<Role> roles = new ArrayList<>();
 
@@ -45,6 +41,7 @@ public class MotionUser {
 
     public MotionUserRef getUserRef() {
         return new MotionUserRef(
+                this.id,
                 this.name,
                 this.username,
                 this.cpf,
@@ -56,6 +53,7 @@ public class MotionUser {
     @Data
     @AllArgsConstructor
     public static class MotionUserRef {
+        private Long id;
         private String name;
         private String username;
         private String cpf;
