@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Date;
+import java.util.List;
 
 @Service
 @AllArgsConstructor
@@ -21,8 +22,7 @@ public class MotionUserService {
     private final AdminPromotionRepository adminPromotionRepository;
     private final PasswordEncoder passwordEncoder;
 
-
-    public MotionUser.MotionUserRef signUpUser(SignInDTO newUserDTO) throws Exception {
+    public MotionUser.MotionUserRef signUpUser(SignInDTO newUserDTO) {
 
         if (userRepository.existsByUsername(newUserDTO.getUsername())) {
             throw new MotionException("User already exists");
@@ -45,7 +45,7 @@ public class MotionUserService {
         return userRepository.save(motionUser).getUserRef();
     }
 
-    public void inactiveUser(Long loggedUserId, Long bannedUserId) {
+    public void inactiveUser(Long loggedUserId, Long bannedUserId) throws Exception {
         MotionUser motionUser = userRepository.findById(loggedUserId)
                 .orElseThrow(() -> new MotionException("User not found"));
         //admin can ban USERS
@@ -55,6 +55,12 @@ public class MotionUserService {
                         .orElseThrow(() -> new MotionException("User not found"));
                 bannedUser.setStatus(MotionUser.Status.INACTIVE);
                 userRepository.save(bannedUser);
+
+                AdminPromotion adminPromotion = adminPromotionRepository
+                        .findByMotionUser(motionUser).orElseThrow(Exception::new);
+
+                Integer countBanUser = adminPromotion.getCountBanUser();
+                adminPromotion.setCountPromotionUser(countBanUser + 1);
             } else {
                 motionUser.setStatus(MotionUser.Status.INACTIVE);
             }
@@ -65,20 +71,24 @@ public class MotionUserService {
     }
 
     @Transactional
-    public MotionUser.MotionUserRef promoteToAdmin(Long promotedUserId) {
+    public MotionUser.MotionUserRef promoteToAdmin(MotionUser.MotionUserRef loggedUser, Long promotedUserId) throws Exception {
         MotionUser motionUser = userRepository.findById(promotedUserId)
                 .orElseThrow(() -> new MotionException("User not found"));
 
-        if (motionUser.getRole().equals(MotionUser.Role.ADMIN)){
+        if (motionUser.getRole().equals(MotionUser.Role.ADMIN)) {
             throw new MotionException("you already Admin");
         }
         AdminPromotion adminPromotion = new AdminPromotion();
 
         adminPromotion.setPromotedAt(new Date());
         adminPromotion.setMotionUser(motionUser);
-        adminPromotionRepository.save(adminPromotion);
+        adminPromotion.setCountBanUser(0);
+        adminPromotion.setCountPromotionUser(0);
+        AdminPromotion loggedAdmin = adminPromotionRepository.findByMotionUserId(loggedUser.getId()).orElseThrow(Exception::new);
+        loggedAdmin.setCountPromotionUser(loggedAdmin.getCountPromotionUser() + 1);
+        adminPromotionRepository.saveAll(List.of(adminPromotion, loggedAdmin));
 
-        motionUser.setPromotedAt(adminPromotion);
+        motionUser.setAdminPromotion(adminPromotion);
         motionUser.setRole(MotionUser.Role.ADMIN);
         userRepository.save(motionUser);
         return null;

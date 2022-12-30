@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.saimon.motion.domain.MotionUser;
 import com.saimon.motion.exception.ErrorResponse;
 import com.saimon.motion.messagerResponse.ConstantMessager;
+import com.saimon.motion.repository.AdminPromotionRepository;
 import com.saimon.motion.repository.UserRepository;
 import com.saimon.motion.util.UtilTest;
 import org.junit.jupiter.api.*;
@@ -27,16 +28,24 @@ public class LoginControllerTest {
     UserRepository userRepository;
     @Autowired
     ObjectMapper objectMapper;
+    @Autowired
+    AdminPromotionRepository adminPromotionRepository;
     UtilTest utilTest;
 
     @BeforeAll
-    public void setUp() throws Exception {
-        utilTest = new UtilTest(userRepository);
+    public void setUp() {
+        utilTest = new UtilTest(userRepository, adminPromotionRepository);
         utilTest.saveMotionUserAndAdmin();
     }
 
-    private String makeLoginInApi() throws Exception {
-        String body = utilTest.loginBody();
+    private String makeLoginInApi(String username) throws Exception {
+
+        String body;
+        if (username == null) {
+            body = utilTest.loginBody();
+        } else {
+            body = utilTest.loginBody(username);
+        }
 
         MvcResult result = mvc.perform(MockMvcRequestBuilders.post("/login")
                         .content(body))
@@ -48,7 +57,8 @@ public class LoginControllerTest {
     @Test
     @DisplayName("Login with Jwt is ok")
     public void existentUserCanGetTokenAndAuthentication() throws Exception {
-        String token = this.makeLoginInApi();
+        String activeMotionUser = utilTest.getActiveMotionUser();
+        String token = this.makeLoginInApi(activeMotionUser);
 
         mvc.perform(MockMvcRequestBuilders.get("/ready")
                         .header("Authorization", "Bearer " + token))
@@ -59,7 +69,7 @@ public class LoginControllerTest {
     @DisplayName("When I make login add loginCount")
     public void assertWhenMakeLoginAddOneLoginCount() throws Exception {
         MotionUser motionUser = userRepository.findByUsername(utilTest.getMotionUserInRepository().getUsername()).get();
-        String token = this.makeLoginInApi();
+        String token = this.makeLoginInApi(null);
         Long correctLogin = userRepository.findByUsername(utilTest.getMotionUserInRepository().getUsername()).get().getLoginCount();
         Assertions.assertEquals(motionUser.getLoginCount(), correctLogin - 1);
 
@@ -92,7 +102,6 @@ public class LoginControllerTest {
                 .andExpect(MockMvcResultMatchers.status().isUnauthorized())
                 .andExpect(MockMvcResultMatchers.content().json(objectMapper.writeValueAsString(errorResponse)))
                 .andReturn();
-
 
         Integer newLoginAttemp = userRepository.findByUsername(utilTest.getMotionUserInRepository().getUsername()).get().getLoginAttemp();
         Assertions.assertEquals(motionUser.getLoginAttemp() + 10, newLoginAttemp);

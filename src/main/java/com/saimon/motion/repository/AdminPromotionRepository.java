@@ -8,4 +8,5 @@ import java.util.Optional;
 
 public interface AdminPromotionRepository extends CrudRepository<AdminPromotion, Long> {
     Optional<AdminPromotion> findByMotionUser(MotionUser motionUser);
+    Optional<AdminPromotion> findByMotionUserId(Long motionUserId);
 }

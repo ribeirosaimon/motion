@@ -2,6 +2,7 @@ package com.saimon.motion.serviceTest;
 
 import com.saimon.motion.api.service.MotionUserService;
 import com.saimon.motion.domain.MotionUser;
+import com.saimon.motion.repository.AdminPromotionRepository;
 import com.saimon.motion.repository.UserRepository;
 import com.saimon.motion.util.UtilTest;
 import org.junit.jupiter.api.Assertions;
@@ -24,11 +25,13 @@ public class UserServiceTest {
     private MotionUserService motionUserService;
     @Autowired
     private UserRepository userRepository;
+    @Autowired
+    AdminPromotionRepository adminPromotionRepository;
     UtilTest utilTest;
 
     @BeforeAll
     public void setUp() throws Exception {
-        utilTest = new UtilTest(userRepository);
+        utilTest = new UtilTest(userRepository, adminPromotionRepository);
         utilTest.saveMotionUserAndAdmin();
     }
 

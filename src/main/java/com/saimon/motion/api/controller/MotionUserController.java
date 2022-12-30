@@ -19,21 +19,22 @@ public class MotionUserController {
     private final MotionUserService motionUserService;
 
     @PostMapping("/signin")
-    public MotionUser.MotionUserRef saveMotionUser(@RequestBody SignInDTO newUserDTO) throws Exception {
+    public MotionUser.MotionUserRef saveMotionUser(@RequestBody SignInDTO newUserDTO) {
         return motionUserService.signUpUser(newUserDTO);
     }
 
     @PostMapping({"/inactive/{id}", "/inactive"})
     @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_USER')")
     public ResponseEntity inactiveMotionUser(MotionLoggedUser motionLoggedUser,
-                                             @PathVariable(value = "id", required = false) Long id) {
+                                             @PathVariable(value = "id", required = false) Long id) throws Exception {
         motionUserService.inactiveUser(motionLoggedUser.getMotionUser().getId(), id);
         return ResponseEntity.ok().build();
     }
 
     @PostMapping("/promotion/{id}")
     @PreAuthorize("hasAnyRole('ROLE_ADMIN')")
-    public MotionUser.MotionUserRef promotionToAdmin(@PathVariable Long id){
-        return motionUserService.promoteToAdmin(id);
+    public MotionUser.MotionUserRef promotionToAdmin(MotionLoggedUser motionLoggedUser,
+                                                     @PathVariable Long id) throws Exception {
+        return motionUserService.promoteToAdmin(motionLoggedUser.getMotionUser(), id);
     }
 }

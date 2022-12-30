@@ -33,8 +33,8 @@ public class MotionUser {
     private Date createdAt;
     private Date updatedAt;
     @OneToOne(cascade = CascadeType.ALL)
-    @JoinColumn(name = "adminPromotionId", referencedColumnName = "id")
-    private AdminPromotion promotedAt;
+    @JoinColumn(name = "adminPromotion_id")
+    private AdminPromotion adminPromotion;
 
     public enum Role {
         ADMIN,

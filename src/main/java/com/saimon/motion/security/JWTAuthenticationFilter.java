@@ -61,6 +61,9 @@ public class JWTAuthenticationFilter extends UsernamePasswordAuthenticationFilte
 
         MotionUser motionUser = userRepository.findByUsername(username).get();
 
+        if(motionUser.getStatus().equals(MotionUser.Status.INACTIVE)){
+            this.setResponseError(response, ConstantMessager.ACCOUNT_INACTIVE);
+        }
         if (!motionUser.getStatus().equals(MotionUser.Status.SUSPENDED) ||
                 (motionUser.getLastLoginAttemp()
                         .after(new Date(System.currentTimeMillis() + TimeUnit.HOURS.toMillis(1))) || motionUser.getStatus().equals(MotionUser.Status.SUSPENDED))

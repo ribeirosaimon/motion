@@ -4,8 +4,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.saimon.motion.DTOs.SignInDTO;
 import com.saimon.motion.domain.MotionUser;
 import com.saimon.motion.exception.MotionException;
+import com.saimon.motion.repository.AdminPromotionRepository;
 import com.saimon.motion.repository.UserRepository;
-import com.saimon.motion.security.JwtUtils;
 import com.saimon.motion.util.UtilTest;
 import org.junit.Test;
 import org.junit.jupiter.api.Assertions;
@@ -34,10 +34,12 @@ public class UserControllerTest {
     ObjectMapper objectMapper;
     @Autowired
     UserRepository userRepository;
+    @Autowired
+    AdminPromotionRepository adminPromotionRepository;
     @Test
     @DisplayName("Sign Up with User return Created")
     public void signUpWithUser() throws Exception {
-        UtilTest utilTest = new UtilTest(userRepository);
+        UtilTest utilTest = new UtilTest(userRepository, adminPromotionRepository);
         String newName = "newName";
         SignInDTO signInDTO = utilTest.getSignInDTO(newName);
 
@@ -54,7 +56,7 @@ public class UserControllerTest {
     @Test
     @DisplayName("User already exists return Exception")
     public void signUpAlreadyUser() throws Exception {
-        UtilTest utilTest = new UtilTest(userRepository);
+        UtilTest utilTest = new UtilTest(userRepository, adminPromotionRepository);
         SignInDTO signInDTO = utilTest.getSignInDTO();
         String jsonSignUp = objectMapper.writeValueAsString(signInDTO);
         mvc.perform(MockMvcRequestBuilders.post("/signin")
@@ -67,7 +69,7 @@ public class UserControllerTest {
     @Test
     @DisplayName("User must deactivate")
     public void userMustDeactivate() throws Exception {
-        UtilTest utilTest = new UtilTest(userRepository);
+        UtilTest utilTest = new UtilTest(userRepository, adminPromotionRepository);
         MotionUser motionUserInRepository = utilTest.getMotionUserInRepository();
 
         mvc.perform(MockMvcRequestBuilders.post("/inactive")
@@ -81,7 +83,7 @@ public class UserControllerTest {
     @Test
     @DisplayName("Admin must deactivate")
     public void adminMustDeactivate() throws Exception {
-        UtilTest utilTest = new UtilTest(userRepository);
+        UtilTest utilTest = new UtilTest(userRepository, adminPromotionRepository);
         MotionUser motionAdminInRepository = utilTest.getMotionAdminInRepository();
 
         mvc.perform(MockMvcRequestBuilders.post("/inactive")
@@ -95,9 +97,10 @@ public class UserControllerTest {
     @Test
     @DisplayName("Admin must to ban a user")
     public void adminMustToBanAUser() throws Exception {
-        UtilTest utilTest = new UtilTest(userRepository);
+        UtilTest utilTest = new UtilTest(userRepository, adminPromotionRepository);
         MotionUser motionAdminInRepository = utilTest.getMotionAdminInRepository();
-        MotionUser motionUserInRepository = utilTest.getMotionUserInRepository();
+        String activeUser = utilTest.getActiveMotionUser();
+        MotionUser motionUserInRepository = userRepository.findByUsername(activeUser).get();
 
         mvc.perform(MockMvcRequestBuilders.post(String.format("/inactive/%s", motionUserInRepository.getId()))
                         .header("Authorization", utilTest.getBearerToken(motionAdminInRepository)))
@@ -106,6 +109,24 @@ public class UserControllerTest {
 
         Assertions.assertEquals(motionUserInController.getRole(), MotionUser.Role.USER);
         Assertions.assertEquals(motionUserInController.getStatus(), MotionUser.Status.INACTIVE);
+    }
+
+
+    @Test
+    @DisplayName("Admin make user Admin")
+    public void adminMakeUserToAdmin() throws Exception {
+        UtilTest utilTest = new UtilTest(userRepository, adminPromotionRepository);
+        MotionUser motionAdminInRepository = utilTest.getMotionAdminInRepository();
+        String activeUser = utilTest.getActiveMotionUser();
+        MotionUser motionUserInRepository = userRepository.findByUsername(activeUser).get();
+
+        mvc.perform(MockMvcRequestBuilders.post(String.format("/promotion/%s", motionUserInRepository.getId()))
+                        .header("Authorization", utilTest.getBearerToken(motionAdminInRepository)))
+                .andExpect(MockMvcResultMatchers.status().isOk());
+        MotionUser motionUserInController = userRepository.findByUsername(activeUser).get();
+
+        Assertions.assertEquals(motionUserInController.getRole(), MotionUser.Role.ADMIN);
+        Assertions.assertEquals(motionUserInController.getStatus(), MotionUser.Status.ACTIVE);
     }
 }
 
