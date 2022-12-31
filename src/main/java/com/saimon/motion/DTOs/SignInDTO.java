@@ -1,5 +1,6 @@
 package com.saimon.motion.DTOs;
 
+import com.saimon.motion.domain.MotionUser;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -10,6 +11,6 @@ public class SignInDTO {
     private String name;
     private String username;
     private String password;
-    private String cpf;
+    private MotionUser.Gender gender;
     private String phone;
 }

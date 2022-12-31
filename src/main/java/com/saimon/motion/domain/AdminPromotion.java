@@ -15,7 +15,7 @@ public class AdminPromotion {
     private Long id;
     private Date promotedAt;
     @OneToOne
-    @JoinColumn(name = "motionUser_id")
+    @JoinColumn(name = "motion_user_id")
     private MotionUser motionUser;
     private Integer countBanUser;
     private Integer countPromotionUser;

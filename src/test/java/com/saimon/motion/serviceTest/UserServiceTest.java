@@ -41,7 +41,7 @@ public class UserServiceTest {
         String newUsername = "newUsername";
         MotionUser.MotionUserRef motionUserRef = motionUserService.signUpUser(this.utilTest.getSignInDTO(newUsername));
         MotionUser foundUser = userRepository.findByUsername(motionUserRef.getUsername()).get();
-        Assertions.assertEquals(foundUser.getCpf(), motionUserRef.getCpf());
+        Assertions.assertEquals(foundUser.getGender(), motionUserRef.getGender());
         Assertions.assertEquals(foundUser.getUsername(), newUsername);
     }
 }

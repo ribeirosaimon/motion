@@ -33,7 +33,7 @@ public class MotionUserService {
         motionUser.setUsername(newUserDTO.getUsername());
         motionUser.setPassword(passwordEncoder.encode(newUserDTO.getPassword()));
         motionUser.setPhone(newUserDTO.getPhone());
-        motionUser.setCpf(newUserDTO.getCpf());
+        motionUser.setGender(newUserDTO.getGender());
         motionUser.setLoginAttemp(0);
         motionUser.setLoginCount(0L);
         motionUser.setStatus(MotionUser.Status.ACTIVE);

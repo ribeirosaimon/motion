@@ -20,7 +20,7 @@ public class UtilTest {
     private static final String USERNAME = "testUsername";
     private static final String ADMIN_USERNAME = "testAdminUsername";
     private static final String PASSWORD = "teste";
-    private static final String CPF = "12345678901";
+    private static final MotionUser.Gender GENDER = MotionUser.Gender.HETERO;
     private static final String PHONE = "11222223333";
     private static final String PASSWORD_ENCODED = "$2a$10$y7BaCXMYDE6xkJl76bKedewKKlz2vd80dPQM9AFxS6OaBaqu2PK6S";
     private final UserRepository userRepository;
@@ -69,7 +69,7 @@ public class UtilTest {
         signInDTO.setName(username);
         signInDTO.setUsername(username);
         signInDTO.setPassword(PASSWORD);
-        signInDTO.setCpf(CPF);
+        signInDTO.setGender(GENDER);
         signInDTO.setPhone(PHONE);
 
         return signInDTO;
@@ -80,7 +80,7 @@ public class UtilTest {
         motionUser.setUsername(username);
         motionUser.setName(username);
         motionUser.setPassword(PASSWORD_ENCODED);
-        motionUser.setCpf(CPF);
+        motionUser.setGender(GENDER);
         motionUser.setPhone(PHONE);
         motionUser.setStatus(MotionUser.Status.ACTIVE);
         motionUser.setLoginCount(0L);

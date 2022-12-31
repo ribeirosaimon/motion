@@ -21,7 +21,6 @@ public class MotionUser {
     private String username;
     @Column(nullable = false)
     private String password;
-    private String cpf;
     private String phone;
     private Long loginCount;
     private Integer loginAttemp;
@@ -30,11 +29,20 @@ public class MotionUser {
     private Status status;
     @Enumerated(EnumType.STRING)
     private Role role;
+    @Enumerated(EnumType.STRING)
+    private Gender gender;
     private Date createdAt;
     private Date updatedAt;
     @OneToOne(cascade = CascadeType.ALL)
-    @JoinColumn(name = "adminPromotion_id")
+    @JoinColumn(name = "admin_promotion_id")
     private AdminPromotion adminPromotion;
+
+    public enum Gender {
+        LESBIAN,
+        GAY,
+        HETERO,
+        TRANS
+    }
 
     public enum Role {
         ADMIN,
@@ -52,7 +60,7 @@ public class MotionUser {
                 this.id,
                 this.name,
                 this.username,
-                this.cpf,
+                this.gender,
                 this.phone,
                 this.role
         );
@@ -64,7 +72,7 @@ public class MotionUser {
         private Long id;
         private String name;
         private String username;
-        private String cpf;
+        private Gender gender;
         private String phone;
         private Role role;
     }
