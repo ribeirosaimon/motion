@@ -25,6 +25,7 @@ public class MotionUser {
     private Long loginCount;
     private Integer loginAttemp;
     private Date lastLoginAttemp;
+    private Date birthday;
     @Enumerated(EnumType.STRING)
     private Status status;
     @Enumerated(EnumType.STRING)

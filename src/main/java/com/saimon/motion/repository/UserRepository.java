@@ -7,6 +7,6 @@ import java.util.Optional;
 
 public interface UserRepository extends CrudRepository<MotionUser, Long> {
     Optional<MotionUser> findByUsername(String username);
-
     Boolean existsByUsername(String username);
+    boolean existsById(Long userId);
 }

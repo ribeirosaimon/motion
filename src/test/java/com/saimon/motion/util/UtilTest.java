@@ -3,11 +3,18 @@ package com.saimon.motion.util;
 import com.saimon.motion.DTOs.SignInDTO;
 import com.saimon.motion.domain.AdminPromotion;
 import com.saimon.motion.domain.MotionUser;
+import com.saimon.motion.domain.Profile;
 import com.saimon.motion.repository.AdminPromotionRepository;
+import com.saimon.motion.repository.ProfileRepository;
 import com.saimon.motion.repository.UserRepository;
 import com.saimon.motion.security.JwtUtils;
 import lombok.Getter;
 import lombok.Setter;
+import org.springframework.boot.json.JacksonJsonParser;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 
 import java.util.Date;
 import java.util.List;
@@ -25,10 +32,12 @@ public class UtilTest {
     private static final String PASSWORD_ENCODED = "$2a$10$y7BaCXMYDE6xkJl76bKedewKKlz2vd80dPQM9AFxS6OaBaqu2PK6S";
     private final UserRepository userRepository;
     private final AdminPromotionRepository adminPromotionRepository;
+    private final ProfileRepository profileRepository;
 
-    public UtilTest(UserRepository userRepository, AdminPromotionRepository adminPromotionRepository) {
+    public UtilTest(UserRepository userRepository, AdminPromotionRepository adminPromotionRepository, ProfileRepository profileRepository) {
         this.userRepository = userRepository;
         this.adminPromotionRepository = adminPromotionRepository;
+        this.profileRepository = profileRepository;
         this.saveMotionUserAndAdmin();
         this.saveOtherUsers();
     }
@@ -40,16 +49,16 @@ public class UtilTest {
         }
     }
 
-    public String getActiveMotionUser() {
+    public MotionUser getActiveMotionUser() {
         List<MotionUser> collect = StreamSupport.stream(userRepository.findAll().spliterator(), false)
                 .filter(s -> s.getStatus().equals(MotionUser.Status.ACTIVE)).toList();
 
         if (collect.size() == 0) {
             MotionUser activateUser = this.createUser("activateUser");
-            return userRepository.save(activateUser).getUsername();
+            return userRepository.save(activateUser);
         }
 
-        return collect.get(0).getUsername();
+        return collect.get(0);
     }
 
     public MotionUser getMotionUserInRepository() {
@@ -97,6 +106,14 @@ public class UtilTest {
         return admin;
     }
 
+    public Profile createProfile(MotionUser motionUser){
+        Profile profile = new Profile();
+        profile.setName(motionUser.getName());
+        profile.setBirthday(motionUser.getBirthday());
+        profile.setSharedBy(Profile.SharedBy.ME);
+        return profile;
+    }
+
     public String getBearerToken(MotionUser motionUserInRepository) {
         String token = JwtUtils.createToken(motionUserInRepository.getUsername(), motionUserInRepository.getRole());
         return String.format("Bearer %s", token);
@@ -105,7 +122,10 @@ public class UtilTest {
     public void saveMotionUserAndAdmin() {
         if (!this.userRepository.existsByUsername(USERNAME)) {
             MotionUser motionUser = this.createUser(USERNAME);
-            this.userRepository.save(motionUser);
+            Profile profile = this.createProfile(motionUser);
+            MotionUser saveMotionUser = this.userRepository.save(motionUser);
+            profile.setMotionUser(saveMotionUser);
+            this.profileRepository.save(profile);
         }
         if (!this.userRepository.existsByUsername(ADMIN_USERNAME)) {
             MotionUser motionAdmin = this.createUser(ADMIN_USERNAME);
@@ -116,7 +136,9 @@ public class UtilTest {
             adminPromotion.setCountPromotionUser(0);
             adminPromotion.setCountBanUser(0);
             adminPromotion.setPromotedAt(new Date());
-            this.userRepository.save(motionAdmin);
+            MotionUser saveMotionAdmin = this.userRepository.save(motionAdmin);
+            Profile profile = this.createProfile(saveMotionAdmin);
+            this.profileRepository.save(profile);
             this.adminPromotionRepository.save(adminPromotion);
         }
     }
@@ -127,5 +149,23 @@ public class UtilTest {
 
     public String loginBody() {
         return "{\"username\":\"" + USERNAME + "\", \"password\":\"" + PASSWORD + "\"}";
+    }
+
+    public String makeLoginInApi(MockMvc mvc, String username) throws Exception {
+
+        String body;
+        if (username == null) {
+            body = this.loginBody();
+        } else {
+            body = this.loginBody(username);
+        }
+
+        MvcResult result = mvc.perform(MockMvcRequestBuilders.post("/login")
+                        .content(body))
+                .andExpect(MockMvcResultMatchers.status().isOk()).andReturn();
+
+        String resultString = result.getResponse().getContentAsString();
+        JacksonJsonParser jsonParser = new JacksonJsonParser();
+        return jsonParser.parseMap(resultString).get("token").toString();
     }
 }

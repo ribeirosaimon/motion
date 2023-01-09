@@ -1,12 +1,11 @@
-package com.saimon.motion.serviceTest;
+package com.saimon.motion.controllersTest;
 
-import com.saimon.motion.api.service.MotionUserService;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.saimon.motion.domain.MotionUser;
 import com.saimon.motion.repository.AdminPromotionRepository;
 import com.saimon.motion.repository.ProfileRepository;
 import com.saimon.motion.repository.UserRepository;
 import com.saimon.motion.util.UtilTest;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -15,17 +14,21 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 
 @SpringBootTest
 @AutoConfigureMockMvc
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @TestPropertySource(locations = "classpath:application-test.properties")
-public class UserServiceTest {
-
+public class ProfileControllerTest {
     @Autowired
-    private MotionUserService motionUserService;
+    MockMvc mvc;
     @Autowired
-    private UserRepository userRepository;
+    UserRepository userRepository;
+    @Autowired
+    ObjectMapper objectMapper;
     @Autowired
     AdminPromotionRepository adminPromotionRepository;
     @Autowired
@@ -33,18 +36,21 @@ public class UserServiceTest {
     UtilTest utilTest;
 
     @BeforeAll
-    public void setUp() throws Exception {
+    public void setUp() {
         utilTest = new UtilTest(userRepository, adminPromotionRepository, profileRepository);
         utilTest.saveMotionUserAndAdmin();
     }
 
     @Test
-    @DisplayName("have to save one user")
-    public void haveToSaveOneUser() throws Exception {
-        String newUsername = "otherUser";
-        MotionUser.MotionUserRef motionUserRef = motionUserService.signUpUser(this.utilTest.getSignInDTO(newUsername));
-        MotionUser foundUser = userRepository.findByUsername(motionUserRef.getUsername()).get();
-        Assertions.assertEquals(foundUser.getGender(), motionUserRef.getGender());
-        Assertions.assertEquals(foundUser.getUsername(), newUsername);
+    @DisplayName("Find my Profile")
+    public void findMyProfileTest() throws Exception {
+        MotionUser activeMotionUser = utilTest.getActiveMotionUser();
+        String token = utilTest.makeLoginInApi(mvc, activeMotionUser.getUsername());
+
+        mvc.perform(MockMvcRequestBuilders.get("/profile/my-profile")
+                        .header("Authorization", "Bearer " + token))
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andExpect(MockMvcResultMatchers.jsonPath("name").value(activeMotionUser.getUsername()))
+                .andExpect(MockMvcResultMatchers.jsonPath("birthday").value(activeMotionUser.getBirthday()));
     }
 }

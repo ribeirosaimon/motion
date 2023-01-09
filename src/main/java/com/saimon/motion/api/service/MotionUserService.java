@@ -3,8 +3,10 @@ package com.saimon.motion.api.service;
 import com.saimon.motion.DTOs.SignInDTO;
 import com.saimon.motion.domain.AdminPromotion;
 import com.saimon.motion.domain.MotionUser;
+import com.saimon.motion.domain.Profile;
 import com.saimon.motion.exception.MotionException;
 import com.saimon.motion.repository.AdminPromotionRepository;
+import com.saimon.motion.repository.ProfileRepository;
 import com.saimon.motion.repository.UserRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -21,6 +23,7 @@ public class MotionUserService {
     private final UserRepository userRepository;
     private final AdminPromotionRepository adminPromotionRepository;
     private final PasswordEncoder passwordEncoder;
+    private final ProfileRepository profileRepository;
 
     public MotionUser.MotionUserRef signUpUser(SignInDTO newUserDTO) {
 
@@ -41,8 +44,10 @@ public class MotionUserService {
 
         motionUser.setCreatedAt(new Date());
         motionUser.setUpdatedAt(new Date());
+        MotionUser userRef = userRepository.save(motionUser);
 
-        return userRepository.save(motionUser).getUserRef();
+        this.createUserProfile(userRef);
+        return userRef.getUserRef();
     }
 
     public void inactiveUser(Long loggedUserId, Long bannedUserId) throws Exception {
@@ -92,5 +97,15 @@ public class MotionUserService {
         motionUser.setRole(MotionUser.Role.ADMIN);
         userRepository.save(motionUser);
         return null;
+    }
+
+    private Profile createUserProfile(MotionUser userRef){
+        Profile profile = new Profile();
+        profile.setMotionUser(userRef);
+        profile.setBirthday(userRef.getBirthday());
+        profile.setSharedBy(Profile.SharedBy.ME);
+        profile.setStatus(Profile.Status.ACTIVE);
+        profile.setName(userRef.getName());
+        return profileRepository.save(profile);
     }
 }

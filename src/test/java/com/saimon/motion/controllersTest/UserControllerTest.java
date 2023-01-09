@@ -5,6 +5,7 @@ import com.saimon.motion.DTOs.SignInDTO;
 import com.saimon.motion.domain.MotionUser;
 import com.saimon.motion.exception.MotionException;
 import com.saimon.motion.repository.AdminPromotionRepository;
+import com.saimon.motion.repository.ProfileRepository;
 import com.saimon.motion.repository.UserRepository;
 import com.saimon.motion.util.UtilTest;
 import org.junit.Test;
@@ -36,10 +37,12 @@ public class UserControllerTest {
     UserRepository userRepository;
     @Autowired
     AdminPromotionRepository adminPromotionRepository;
+    @Autowired
+    ProfileRepository profileRepository;
     @Test
     @DisplayName("Sign Up with User return Created")
     public void signUpWithUser() throws Exception {
-        UtilTest utilTest = new UtilTest(userRepository, adminPromotionRepository);
+        UtilTest utilTest = new UtilTest(userRepository, adminPromotionRepository, profileRepository);
         String newName = "newName";
         SignInDTO signInDTO = utilTest.getSignInDTO(newName);
 
@@ -56,7 +59,7 @@ public class UserControllerTest {
     @Test
     @DisplayName("User already exists return Exception")
     public void signUpAlreadyUser() throws Exception {
-        UtilTest utilTest = new UtilTest(userRepository, adminPromotionRepository);
+        UtilTest utilTest = new UtilTest(userRepository, adminPromotionRepository, profileRepository);
         SignInDTO signInDTO = utilTest.getSignInDTO();
         String jsonSignUp = objectMapper.writeValueAsString(signInDTO);
         mvc.perform(MockMvcRequestBuilders.post("/signin")
@@ -69,7 +72,7 @@ public class UserControllerTest {
     @Test
     @DisplayName("User must deactivate")
     public void userMustDeactivate() throws Exception {
-        UtilTest utilTest = new UtilTest(userRepository, adminPromotionRepository);
+        UtilTest utilTest = new UtilTest(userRepository, adminPromotionRepository, profileRepository);
         MotionUser motionUserInRepository = utilTest.getMotionUserInRepository();
 
         mvc.perform(MockMvcRequestBuilders.post("/inactive")
@@ -83,7 +86,7 @@ public class UserControllerTest {
     @Test
     @DisplayName("Admin must deactivate")
     public void adminMustDeactivate() throws Exception {
-        UtilTest utilTest = new UtilTest(userRepository, adminPromotionRepository);
+        UtilTest utilTest = new UtilTest(userRepository, adminPromotionRepository, profileRepository);
         MotionUser motionAdminInRepository = utilTest.getMotionAdminInRepository();
 
         mvc.perform(MockMvcRequestBuilders.post("/inactive")
@@ -97,9 +100,9 @@ public class UserControllerTest {
     @Test
     @DisplayName("Admin must to ban a user")
     public void adminMustToBanAUser() throws Exception {
-        UtilTest utilTest = new UtilTest(userRepository, adminPromotionRepository);
+        UtilTest utilTest = new UtilTest(userRepository, adminPromotionRepository, profileRepository);
         MotionUser motionAdminInRepository = utilTest.getMotionAdminInRepository();
-        String activeUser = utilTest.getActiveMotionUser();
+        String activeUser = utilTest.getActiveMotionUser().getUsername();
         MotionUser motionUserInRepository = userRepository.findByUsername(activeUser).get();
 
         mvc.perform(MockMvcRequestBuilders.post(String.format("/inactive/%s", motionUserInRepository.getId()))
@@ -115,9 +118,9 @@ public class UserControllerTest {
     @Test
     @DisplayName("Admin make user Admin")
     public void adminMakeUserToAdmin() throws Exception {
-        UtilTest utilTest = new UtilTest(userRepository, adminPromotionRepository);
+        UtilTest utilTest = new UtilTest(userRepository, adminPromotionRepository, profileRepository);
         MotionUser motionAdminInRepository = utilTest.getMotionAdminInRepository();
-        String activeUser = utilTest.getActiveMotionUser();
+        String activeUser = utilTest.getActiveMotionUser().getUsername();
         MotionUser motionUserInRepository = userRepository.findByUsername(activeUser).get();
 
         mvc.perform(MockMvcRequestBuilders.post(String.format("/promotion/%s", motionUserInRepository.getId()))

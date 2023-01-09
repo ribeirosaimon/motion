@@ -23,18 +23,24 @@ public class Profile {
     private SharedBy sharedBy;
     @Enumerated(EnumType.STRING)
     private RelationShip relationShip;
-    @OneToOne(cascade = CascadeType.ALL)
+    @OneToOne
     @JoinColumn(name = "motion_user_id")
     private MotionUser motionUser;
-
+    @Enumerated(EnumType.STRING)
+    private Status status;
+    private Date createdAt;
+    private Date updatedAt;
     public enum RelationShip {
         SINGLE,
         MARRIED
     }
-
     public enum SharedBy {
         ME,
         FRIENDS,
         ALL
+    }
+    public enum Status {
+        ACTIVE,
+        INACTIVE
     }
 }

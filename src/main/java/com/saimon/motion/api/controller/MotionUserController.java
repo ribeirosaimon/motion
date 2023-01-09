@@ -7,13 +7,11 @@ import com.saimon.motion.security.MotionLoggedUser;
 import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
-@RestController
+
 @AllArgsConstructor
+@RestController
 public class MotionUserController {
 
     private final MotionUserService motionUserService;
